@@ -1,0 +1,50 @@
+Rock, Paper, Scissors Game
+--------------------------
+For this project you will write a program to simulate the game Rock, Paper, Scissors. You will include both a one-player and two-player game. The rules are as follows:
+
+          Paper Covers Rock
+
+          Rock Smashed Scissors
+
+          Scissors Cut Paper
+
+Your program must include the following:
+
+Main Menu
+
+See the rules
+Play against the computer
+Play a two player game
+Quit
+Weapon Menu for both one player and two player game to choose weapon
+
+Rock
+Paper
+Scissors
+Return to Main menu
+The one player game should include a randomly generated choice (1 – 3) by the computer for the weapon and should calculate and display scores for the player and computer each time a game is played.
+The two player game should calculate and display scores for the two players each time they play a game.
+The user(s) should be allowed to play as many times as he/she wishes until a choice is made to quit.
+Input validation:
+
+The user must choose 1 – 4 from the main menu.
+The user must choose 1 – 4 from the weapon menu.
+
+Algorithm
+---------
+1. display fluffy_intro
+2. display menu
+3. have player 1 select move
+4. have player 2 select move
+5. declare winner
+6. display menu
+7. exit
+
+Notes
+-----
+Class Player
+    self.name
+    self.wins_losses_ties = [0, 0 ,0]
+
+Class RPS
+    
