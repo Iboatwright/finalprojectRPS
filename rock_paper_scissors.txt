@@ -46,5 +46,21 @@ Class Player
     self.name
     self.wins_losses_ties = [0, 0 ,0]
 
+Class game
+
+Class tournament
+
 Class RPS
-    
+
+------------------------
+players = new player(name)
+
+Scoring:
+Win  +1 point
+Tie   0 points
+Loss -1 points
+
+
+player(x) scoring matix:
+ match results = x^2 -x
+ list depth = scores(x)(x)
