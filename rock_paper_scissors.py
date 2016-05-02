@@ -8,69 +8,35 @@
 # Ivan Boatwright
 # April 29, 2016
 
+# For computer's move.
+import random
+
 def main():
     # Initialize Tournament.
     j = Tournament() # j is for janken
 
-    # Customization Variables
-    main_opts = [('Read the rules', display_rules),
-                 ('Player vs Computer', j.new_PvC),
-                 ('Player vs Player', j.new_PvP)]
-    game_opts = []
     # Displays an introduction to the program and describes what it does.
     fluffy_intro()
+    main_menu = Menu(j.main_opts)
+    main_menu()
+
 
     return None
 
 
 
 
-# Section Block: Menu ------------------------------------------------------->
-# TODO: main_menu{1: rules, 2: PvC, 3: PvP, 0: Quit}
-# TODO: weapon_menu{1: Rock, 2: Paper, 3: Scissors, 0: Main Menu}
-# Menu control options passed to the menu function.  A list with each
-#   entry a tuple of [0] the display text and [1] the function to call.
-#   Menu numbers start at 1), option 0) defaults to Exit.
-cOpts = [('option 1','execute this'), ('option 2', 'etc')]
-
-
-# main_menu prints a list of options for the user to select from.
-def main_menu(cOpts, cVars):
-    # Menu control options. A list with each entry a tuple of
-    #   [0] the display text and [1] the function to call.
-    # TODO: check for cOpts[0], else use this
-    menuOptions = [('Exit', exit_menu)]  # Set default menu options.
-    menuOptions.extend(cOpts)  # Add custom menu options.
-    MENU_COUNT = len(menuOptions)
-
-    # Initialize the loop control variable.
-    menuSelection = True
-
-    # While menuSelection does not equal 0 (the default exit option.)
-    while menuSelection != 0:
-        display_menu(menuOptions, cVars)
-        # Calls the input request/validation function and converts the return
-        #   value into an integer.  The number of menu elements is prepended
-        #   to the input request and used as part of the validation testing.
-        menuSelection = int(get_valid_inputs([[str(MENU_COUNT) +
-                                               ' menu options', 'selection']]))
-
-        # Use the validated user input to select the function reference and
-        #   execute the function with the trailing ().
-        menuSelection = menuOptions[menuSelection][1](cVars)
-
-    # By design the exit_menu function runs before the while loop breaks.
-    return None
-
-# <<------------ End Block--------------------------------------------------<<
 
 # Displays an introduction to the program and describes what it does.
 def fluffy_intro():
-    print("Welcome to RPS sim.")
+    print("Welcome to Rock, Paper, Scissors sim.")
     return None
 
 def display_rules():
-    print("Rock, Paper, Scissors.")
+    print("The rules are as follows:\n"
+          "Paper Covers Rock\n"
+          "Rock Smashed Scissors\n"
+          "Scissors Cut Paper\n")
     return None
 
 # Getto style clear console screen by newline flooding.
@@ -79,37 +45,7 @@ def clear(n=50):
     return None
 
 
-# Section Block: Misc ------------------------------------------------------->
-# todo: pick one or something
-# Returns a string used to identify a new part(i.e. page) of the program.
-def page_header(title, userName=''):
-    return '{0}\n{1:^40}\n{0}\n{2:>40}'.format('=' * 40, title, userName)
-def page_header2(title):
-    return '{0}\n{1:^40}\n{0}'.format('='*40,title)
-# Returns a string used to identify a new part(i.e. page) of the program.
-def page_header3(title):
-    return '{0:-<62}\n{1:^67}\n{0:_<62}\n'.format('    ', title)
 
-
-# TODO: ___tablefy___________________
-headers2 = ('SAVINGS', 'NOT GREEN', 'GONE GREEN', '  MONTH')
-hDesign = '{0:^4}{{0:>10}}{0:^6}{{1:>10}}{0:^6}{{2:>10}}' \
-                 '{0:^6}{{3:<8}}\n'.format('')
-design = '{0:^3}{{0:>10}}{0:^6}{{1:>10}}{0:^6}{{2:>10}}' \
-               '{0:^8}{{3:<8}}\n'.format('')
-
-# tablefy2(title, headers2, hdesign, design, zip(*data))
-
-# Takes a title, a set of headers, a header format string, a body format
-#   string, a merged parallel array and returns a print friendly string.
-def tablefy2(title, headers, hdesign, design, data):
-    title = '{0:-<62}\n\n{1:^67}\n{0:_<62}\n'.format('    ', title)
-    head = hdesign.format(*headers)
-    division = '{0:4}{0:_<58}\n'.format('')
-    body = ''.join([design.format(j[0], j[1], j[2], j[3]) for j in data])
-    return '{}{}{}{}'.format(title, head, division, body)
-# =======================================
-# <<------------ End Block--------------------------------------------------<<
 
 class Player:
     """JKP Player and Computer class"""
@@ -137,12 +73,18 @@ class Player:
 class Game:
     # moves[0:2] player1 wins, moves[3:5] player2 wins, else tie match
     moves = ["RS", "PR", "SP", "SR", "RP", "PS"]
+    results = {"RS":"Rock smashes Scissors!", "PR": "Paper covers Rock!",
+               "SP": "Scissors cut Paper!", "SR":
+               "Scissors are smashed by Rock!", "RP":
+               "Rock is smothered bu Paper!",
+               "PS": "Paper is cut by Scissors!"}
     """initialized instance from main menu"""
     def __init__(self, player1, player2):
         self.players = [player1, player2]
-        self.round = 1
+        self.round_count = 1
         self.match_score = [0, 0, 0] # [p1 wins, p2 wins, ties]
         self.attacks = ""
+        self.last_winner = None
 
     # Todo: add a print statement for Game class
     def __str__(self):
@@ -152,9 +94,18 @@ class Game:
 
     # +Game increments the round counter.
     def __pos__(self):
-        self.round += 1
+        self.round_count += 1
 
-    # Called each time an attack is made.  It overwrites previous match
+    def rock(self):
+        self.judge("R")
+
+    def paper(self):
+        self.judge("P")
+
+    def scissors(self):
+        self.judge("S")
+
+    # Called each time an attack is made.  It overwrites previous round
     #   attacks.
     def judge(self, attack):
         if len(self.attacks) == 2:
@@ -164,10 +115,13 @@ class Game:
 
         if self.attacks in self.moves[0:2]: # P1 wins
             self.winner(0, 1)
+            self.last_winner = self.players[0]
         elif self.attacks in self.moves[3:5]: # P2 wins
             self.winner(1, 0)
+            self.last_winner = self.players[1]
         else: # Tie round
             self.winner(2)
+            self.last_winner = None
 
     # Updates player object and match after each round.
     # noinspection PyStatementEffect
@@ -183,36 +137,75 @@ class Game:
 
 class Tournament:
     """initialized with main menu.  Tracks player stats between games."""
+    main_opts = [('Read the rules', display_rules),
+                 ('Player vs Computer', j.new_PvC),
+                 ('Player vs Player', j.new_PvP)]
+    game_opts = [('Rock', j.match.rock), ('Paper', j.match.paper),
+                 ('Scissors', j.match.scissors), ('Return to Main Menu', None)]
+
     def __init__(self):
-        self.match = 1
+        self.match_count = 1
         computer = Player()
         player1 = Player('player1')
         player2 = Player('player2')
         self.players = [computer, player1, player2]
 
     def new_PvC(self):
-        self.PvC = Game(self.players[1], self.players[0])
+        self.start_match(self.players[1], self.players[0])
 
     def new_PvP(self):
-        self.PvP = Game(self.players[1], self.players[2])
+        self.start_match(self.players[1], self.players[2])
 
+    # Runs the actual match loop.
+    def start_match(self, p1, p2):
+        self.match = Game(p1, p2)
+        game_menu = Menu(self.game_opts)
+        while game_menu.select != 0:
+            print("Round {}. {}'s turn.".format(self.match.round_count,
+                                                p1.name))
+            game_menu.display_menu()
+            game_menu.do_select()
+            if game_menu.select == 0:
+                continue
+            if p2.name == "computer":
+                self.match.judge(random.choice("RPS"))
+            else:
+                print("\n"*50)
+                print("Round {}. {}'s turn.".format(self.match.round_count,
+                                                    p1.name))
+                game_menu.display_menu()
+                game_menu.do_select()
+            print(self.match.results[self.match.attacks])
+            if self.match.last_winner == None:
+                print("This round was a tie. No winners.")
+                print("Current Score: {} - {} wins, {} - {} wins, {} ties."
+                      "".format(p1.name, self.match.match_score[0],
+                                p2.name, self.match.match_score[1],
+                                self.match.match_score[2],))
+
+
+
+    # Increment the match counter
     def __pos__(self):
-        self.match += 1
+        self.match_count += 1
 
 class Menu:
     """Base menu class."""
     def __init__(self, cOpts, *args):
         self.cVars = args
-        self.mOpts = "" if exit_menu in [i[1] for i in cOpts] \
-            else [('Exit', exit_menu)]
-        self.mOpts.extend(cOpts)
+        # silliness to ensure the class exit_menu function is used.
+        self.mOpts = [(cOpts[-1][0], self.exit_menu)] if cOpts[-1][1] != None\
+            else [('Exit', self.exit_menu)]
+        self.mOpts.extend(cOpts[:-1])
         self.mCount = str(len(self.mOpts))
         self.select = True
+        self.v_menu = Valid_Menu()
+        self.v_name = Valid_Name()
 
     def __call__(self, *args, **kwargs):
         while self.select != 0:
             self.display_menu()
-            self.do_select()
+            self.do_select() # user picks weapon and it's stored
 
     # Prints the menu header and menu options to stdout.  The menuOptions list
     #   is the parameter and used to generate the option strings.
@@ -227,8 +220,8 @@ class Menu:
 
     # noinspection PyCallingNonCallable
     def do_select(self):
-        self.select = int(get_valid_inputs([self.mCount + ' menu options',
-                                           'selection']))
+        self.select = int(self.v_menu(['selection', self.mCount +
+                                       ' menu options']))
         self.mOpts[self.select][1](self.cVars)
 
 
@@ -307,3 +300,4 @@ class Valid_Name(Validate):
         else:
             valid = False
         return valid
+
