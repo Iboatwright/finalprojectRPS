@@ -32,11 +32,11 @@ def fluffy_intro():
     print("Welcome to Rock, Paper, Scissors sim.")
     return None
 
-def display_rules():
+def display_rules(*args):
     print("The rules are as follows:\n"
           "Paper Covers Rock\n"
           "Rock Smashed Scissors\n"
-          "Scissors Cut Paper\n")
+          "Scissors Cut Paper\n\n")
     return None
 
 # Getto style clear console screen by newline flooding.
@@ -76,8 +76,9 @@ class Game:
     results = {"RS":"Rock smashes Scissors!", "PR": "Paper covers Rock!",
                "SP": "Scissors cut Paper!", "SR":
                "Scissors are smashed by Rock!", "RP":
-               "Rock is smothered bu Paper!",
-               "PS": "Paper is cut by Scissors!"}
+               "Rock is smothered by Paper!",
+               "PS": "Paper is cut by Scissors!",
+               "RR": "", "PP": "", "SS": ""}
     """initialized instance from main menu"""
     def __init__(self, player1, player2):
         self.players = [player1, player2]
@@ -137,11 +138,6 @@ class Game:
 
 class Tournament:
     """initialized with main menu.  Tracks player stats between games."""
-    main_opts = [('Read the rules', display_rules),
-                 ('Player vs Computer', j.new_PvC),
-                 ('Player vs Player', j.new_PvP)]
-    game_opts = [('Rock', j.match.rock), ('Paper', j.match.paper),
-                 ('Scissors', j.match.scissors), ('Return to Main Menu', None)]
 
     def __init__(self):
         self.match_count = 1
@@ -149,6 +145,11 @@ class Tournament:
         player1 = Player('player1')
         player2 = Player('player2')
         self.players = [computer, player1, player2]
+        self.main_opts = [('Read the rules', display_rules),
+                     ('Player vs Computer', self.new_PvC),
+                     ('Player vs Player', self.new_PvP)]
+
+
 
     def new_PvC(self):
         self.start_match(self.players[1], self.players[0])
@@ -159,15 +160,19 @@ class Tournament:
     # Runs the actual match loop.
     def start_match(self, p1, p2):
         self.match = Game(p1, p2)
-        game_menu = Menu(self.game_opts)
+        game_opts = [('Rock', self.match.rock), ('Paper', self.match.paper),
+                     ('Scissors', self.match.scissors)]
+        game_menu = Menu(game_opts, "Return to main menu")
         while game_menu.select != 0:
             print("Round {}. {}'s turn.".format(self.match.round_count,
                                                 p1.name))
             game_menu.display_menu()
             game_menu.do_select()
+            print(p1)
+            print(p2)
             if game_menu.select == 0:
                 continue
-            if p2.name == "computer":
+            if p2.name.lower() == "computer":
                 self.match.judge(random.choice("RPS"))
             else:
                 print("\n"*50)
@@ -191,12 +196,17 @@ class Tournament:
 
 class Menu:
     """Base menu class."""
-    def __init__(self, cOpts, *args):
-        self.cVars = args
+    def __init__(self, cOpts, arg="Exit"):
+        self.mOpts = ''
         # silliness to ensure the class exit_menu function is used.
-        self.mOpts = [(cOpts[-1][0], self.exit_menu)] if cOpts[-1][1] != None\
-            else [('Exit', self.exit_menu)]
-        self.mOpts.extend(cOpts[:-1])
+        if cOpts[-1][1] == self.exit_menu:
+            self.mOpts = []
+        elif cOpts[-1][1] == 'X':
+            self.mOpts = [(cOpts[-1][0], self.exit_menu)]
+        else:
+            self.mOpts = [(arg, self.exit_menu)]
+        print(self.mOpts)
+        self.mOpts.extend(cOpts)
         self.mCount = str(len(self.mOpts))
         self.select = True
         self.v_menu = Valid_Menu()
@@ -220,9 +230,9 @@ class Menu:
 
     # noinspection PyCallingNonCallable
     def do_select(self):
-        self.select = int(self.v_menu(['selection', self.mCount +
-                                       ' menu options']))
-        self.mOpts[self.select][1](self.cVars)
+        self.select = int(self.v_menu('selection', self.mCount +
+                                       ' menu options'))
+        self.mOpts[self.select][1]()
 
 
     # Sets the loop control variable to 0 which ends the while loop.
@@ -271,7 +281,8 @@ class Valid_Menu(Validate):
             valid = Validate.test_value(self, condition, item)
         elif condition[1:] == ' menu options':
             try:
-                if int(item) >= 0 and int(condition[:1]) > int(item):
+                if len(item) > 0 and int(item) >= 0 and \
+                                int(condition[:1]) > int(item):
                     valid = True
                 else:
                     valid = False
@@ -301,3 +312,5 @@ class Valid_Name(Validate):
             valid = False
         return valid
 
+
+main()
