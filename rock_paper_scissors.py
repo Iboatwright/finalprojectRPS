@@ -9,87 +9,21 @@
 # April 29, 2016
 
 def main():
+    # Initialize Tournament.
+    j = Tournament() # j is for janken
+
+    # Customization Variables
+    main_opts = [('Read the rules', display_rules),
+                 ('Player vs Computer', j.new_PvC),
+                 ('Player vs Player', j.new_PvP)]
+    game_opts = []
     # Displays an introduction to the program and describes what it does.
     fluffy_intro()
 
     return None
 
 
-# Section Block: Input Validation ------------------------------------------->
-# TODO: get_valid_inputs: [menu_options integer, username string len(10)]
-# TODO: Can convert to class since I need at least 2 validators.
-# TODO:     valid_menu = Validation(menu_request_list)
-# TODO:     valid_name = Validation(name_request_list)
-# TODO: OR! baseclass Validation. subclasses: valid_name, valid_menu
-# get_valid_inputs requests input from the user then tests the input.
-#   If invalid, it will alert the user and request the correct input.
-# The parameter is a nested List of ordered pair Lists.
-#   First value is the validation test and second is the user prompt.
-def get_valid_inputs(requestsList):
-    # local List to hold user inputs for return to calling module
-    userInputs = []
 
-    # Loop through each entry in requestsList assigning each List pair
-    #  to request.
-    for request in requestsList:
-        # untestedInput is a holding variable for testing user input validity.
-        # First user prompt before testing loop.
-        untestedInput = prompt_user_for_input(request[1])
-
-        # If test_value returns True, Not converts it to False and the While
-        #   Loop will not execute.
-        # If test_value returns False, the While executes and the user is
-        #   prompted to enter a valid value.
-        while not test_value(request[0], untestedInput):
-            print('!!! Error: {} is not a valid value.'.format(untestedInput))
-            untestedInput = (prompt_user_for_input(request[1]))
-
-        # The user input tested valid and is appended to the userInputs List.
-        userInputs.append(untestedInput)
-    # for loop terminates and userInputs are returned to calling Module.
-    # With only a single test run in this program, only the first value
-    #   in userInputs is returned.
-    return userInputs[0]
-
-
-# prompt_user_for_item is passed a String to print to screen as part of a user
-#   prompt.  Then returns it to the calling module.
-def prompt_user_for_input(promptTerm):
-    # promptTerm is a local variable to hold the value passed from the
-    #   calling module.
-    print('Please enter your {}.'.format(promptTerm))
-    return input('  >>> ')
-
-
-# test_value uses the testCondition to select the proper test.
-# True or False is returned to the calling Module.
-def test_value(testCondition, testItem):
-    # The If-Then-Else structure functions as a Switch for test selection.
-    if testCondition[1:] == ' menu options':
-        # The number of menu items is prepended to the test condition string.
-        #   testCondition[1:] strips the first character and then does the
-        #   string comparison.
-        # If (the number of menu items) is greater than int(testItem) and
-        #   int(testItem) is greater than or equal to zero, True is
-        #   returned.  If int(testItem) creates an error or fails the other
-        #   logic tests, False is returned.
-        try:
-            if int(testItem) >= 0 and int(testCondition[:1]) > int(testItem):
-                valid = True
-            else:
-                valid = False
-        except:
-            valid = False
-    elif testCondition == 'integer':
-        try:
-            int(testItem)
-            valid = True
-        except:
-            valid = False
-    else:
-        valid = None
-    return valid
-# <<------------ End Block--------------------------------------------------<<
 
 # Section Block: Menu ------------------------------------------------------->
 # TODO: main_menu{1: rules, 2: PvC, 3: PvP, 0: Quit}
@@ -130,10 +64,13 @@ def main_menu(cOpts, cVars):
 
 # <<------------ End Block--------------------------------------------------<<
 
-# Section Block: Misc ------------------------------------------------------->
 # Displays an introduction to the program and describes what it does.
 def fluffy_intro():
     print("Welcome to RPS sim.")
+    return None
+
+def display_rules():
+    print("Rock, Paper, Scissors.")
     return None
 
 # Getto style clear console screen by newline flooding.
@@ -141,6 +78,8 @@ def clear(n=50):
     print("\n" * n)
     return None
 
+
+# Section Block: Misc ------------------------------------------------------->
 # todo: pick one or something
 # Returns a string used to identify a new part(i.e. page) of the program.
 def page_header(title, userName=''):
@@ -205,14 +144,18 @@ class Game:
         self.match_score = [0, 0, 0] # [p1 wins, p2 wins, ties]
         self.attacks = ""
 
+    # Todo: add a print statement for Game class
     def __str__(self):
         r = ""
         for p in self.players:
             r += p
 
-    def __pos__(self): # +Game increments the round counter.
+    # +Game increments the round counter.
+    def __pos__(self):
         self.round += 1
 
+    # Called each time an attack is made.  It overwrites previous match
+    #   attacks.
     def judge(self, attack):
         if len(self.attacks) == 2:
             self.attacks = attack
@@ -220,33 +163,46 @@ class Game:
             self.attacks += attack
 
         if self.attacks in self.moves[0:2]: # P1 wins
-            self.winner(0)
+            self.winner(0, 1)
         elif self.attacks in self.moves[3:5]: # P2 wins
-            self.winner(1)
+            self.winner(1, 0)
         else: # Tie round
             self.winner(2)
 
-    # Updates player object and match
+    # Updates player object and match after each round.
     # noinspection PyStatementEffect
-    def winner(self, w, l=2):
-        self.match_score[w] += 1
-        if n != 2:
-            +self.players[w]
-            -self.players[l]
+    def winner(self, W, L=2):
+        self.match_score[W] += 1
+        if W != 2:
+            +self.players[W]
+            -self.players[L]
+        else:
+            ~self.players[0]
+            ~self.players[1]
 
 
 class Tournament:
     """initialized with main menu.  Tracks player stats between games."""
     def __init__(self):
         self.match = 1
+        computer = Player()
+        player1 = Player('player1')
+        player2 = Player('player2')
+        self.players = [computer, player1, player2]
+
+    def new_PvC(self):
+        self.PvC = Game(self.players[1], self.players[0])
+
+    def new_PvP(self):
+        self.PvP = Game(self.players[1], self.players[2])
 
     def __pos__(self):
         self.match += 1
 
 class Menu:
     """Base menu class."""
-    def __init__(self, cOpts, cVars):
-        self.cVars = cVars
+    def __init__(self, cOpts, *args):
+        self.cVars = args
         self.mOpts = "" if exit_menu in [i[1] for i in cOpts] \
             else [('Exit', exit_menu)]
         self.mOpts.extend(cOpts)
@@ -283,4 +239,71 @@ class Menu:
         return None
 
 
+class Validate:
+    def __init__(self, base_prompt=("Please enter your {}.", "  >>> "),
+                 base_error="!!! Error: {} is not a valid value."):
+        self.base_prompt = base_prompt
+        self.base_error = base_error
 
+    def __call__(self, prompt_term, condition='integer'):
+        raw_input = self.get_inputs(prompt_term)
+        while not self.test_value(condition, raw_input):
+            print(self.base_error.format(raw_input))
+        return raw_input
+
+    def get_inputs(self, prompt_term):
+        print(self.base_prompt[0].format(prompt_term))
+        return input(self.base_prompt[1])
+
+    def test_value(self, condition, item):
+        if condition == 'integer':
+            try:
+                int(item)
+                valid = True
+            except:
+                valid = False
+        else:
+            valid = None
+        return valid
+
+
+class Valid_Menu(Validate):
+    """Validates user menu selection."""
+    def __init__(self):
+        base_error = "!!! Error: {} is not a valid selection."
+        Validate.__init__(self, base_error=base_error)
+
+    def test_value(self, condition, item):
+        if condition == 'integer':
+            valid = Validate.test_value(self, condition, item)
+        elif condition[1:] == ' menu options':
+            try:
+                if int(item) >= 0 and int(condition[:1]) > int(item):
+                    valid = True
+                else:
+                    valid = False
+            except:
+                valid = False
+        else:
+            valid = False
+        return valid
+
+class Valid_Name(Validate):
+    """Validates user name input."""
+    def __init__(self):
+        base_error = "!!! Error: {} is not a valid username."
+        Validate.__init__(self, base_error=base_error)
+
+    def get_inputs(self):
+        prompt_term = "username"
+        return Validate.get_inputs(self, prompt_term)
+
+    def test_value(self, condition, item):
+        if condition == 'username':
+            if item.isalnum() and len(item) <= 10:
+                valid = True
+            else:
+                valid = False
+        else:
+            valid = False
+        return valid
